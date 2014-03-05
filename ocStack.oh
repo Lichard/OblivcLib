@@ -1,0 +1,19 @@
+typedef struct ocStack 
+{
+    int level;
+    buffer *next;
+    obliv char head; //limited to 0-5
+    obliv bool *buffer;
+    int cap;
+    int maxSize; //max possible size.
+}ocStack;
+
+ocStack* ocStackNew();
+ocStack* ocStackNew(int n);
+ocStack* ocStackFromList(bool data[], int lim);
+void capLength(frozen ocStack *s, int cap);
+obliv bool peek(frozen ocStack *s) obliv;
+obliv bool pop(frozen ocStack *s) obliv;
+void modifyTop(frozen ocStack *s, obliv bool b) obliv;
+void push(frozen ocStack *s, obliv bool b) obliv;
+void ocStackRelease(frozen ocStack* s);

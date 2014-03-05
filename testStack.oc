@@ -1,0 +1,10 @@
+#include<obliv.oh>
+#include"testStack.h"
+#inclue<stdio.h>
+#include"ocStack.oh"
+
+void testStack(void* args)
+{
+    protocolIO *io = args;
+    obliv bool b;
+}

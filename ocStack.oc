@@ -1,0 +1,73 @@
+#include "ocStack.oh"
+#include <math.h>
+
+static ocStack* ocStackNew(int n, int level){
+    if(n<=0)
+        return NULL;
+    int bufSlots = 5*exp2(level);
+    ocStack* s = calloc(sizeof (ocStack));
+    s->level = level;
+    s->head = 0;
+    s->buffer = calloc(bufSlots*(sizeof (obliv bool)));
+    s->next = ocStackNew(n - size, ++level);
+    return s;
+}
+
+ocStack* ocStackNew(){
+    return ocStackNew(15,0);
+}
+ocStack* ocStackNew(int n){
+    return ocStackNew(n,0);
+}
+
+static void fillFromList(ocStack* s, obliv bool data[], int lim, int level){
+    if(lim<=0)
+        return NULL;
+	s->level = level;
+	s->head = 3;
+    int slotSize = exp2(level);
+    memcpy(s->buffer, data, 3*slotSize*sizeof(obliv bool));
+	s->maxSize = 3;
+    fillFromList(s->next, data+3*slotSize, lim-3*slotSize, ++level);
+}
+
+ocStack* ocStackFromList(obliv bool data[], int lim){
+    ocStack* s = ocStackNew(lim*5/3);// 5/3 so buffer can fill to 'nice' state
+    fillFromList(s, data, lim, 0); 
+    return s;
+}
+
+void capLength(ocStack *s, int cap){
+    s->maxLength = cap; 
+    if(s->next!=NULL)
+        capLength(s->next, (cap-2)/2);
+}
+
+obliv bool peek(frozen ocStack *s){
+	~obliv(cond){
+		if(cond) return s->buffer[head];
+	}
+}
+
+obliv bool pop(frozen ocStack *s) obliv{
+    ~obliv(cond){
+		
+    }
+}
+
+void modifyTop(frozen ocStack *s, obliv bool b) obliv{
+    s->buffer[head] = b;
+}
+
+void push(frozen ocStack *s, obliv bool b) obliv{
+	~obliv(cond){
+	
+	}
+}
+
+void ocStackRelease(ocStack* s){
+    if(s->next != NULL)
+        ocStackRelease(s->next);
+    free(s->buffer);
+    free(s);
+}

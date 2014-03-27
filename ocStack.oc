@@ -1,25 +1,26 @@
 #include "ocStack.oh"
 #include <math.h>
 
+//calloc defaults values to 0
 static ocStack* ocStackNew(int n, int level){
     if(n<=0)
         return NULL;
-    int bufSlots = 5*exp2(level);
+    int bufSize = exp2(level);
     ocStack* s = calloc(sizeof (ocStack));
     s->level = level;
-    s->head = 0;
-    s->buffer = calloc(bufSlots*(sizeof (obliv bool)));
-    s->next = ocStackNew(n - size, ++level);
+    s->buffer = calloc(5*bufSlots*(sizeof (obliv bool)));
+    s->next = ocStackNew(n - 3*bufSize, level+1); //to fill 3/5 spaces
     return s;
 }
 
 ocStack* ocStackNew(){
-    return ocStackNew(15,0);
+    return ocStackNew(15,0); //arbitrary default size
 }
 ocStack* ocStackNew(int n){
     return ocStackNew(n,0);
 }
 
+//Assume stack already allocated with enough space
 static void fillFromList(ocStack* s, obliv bool data[], int lim, int level){
     if(lim<=0)
         return NULL;
@@ -32,36 +33,121 @@ static void fillFromList(ocStack* s, obliv bool data[], int lim, int level){
 }
 
 ocStack* ocStackFromList(obliv bool data[], int lim){
-    ocStack* s = ocStackNew(lim*5/3);// 5/3 so buffer can fill to 'nice' state
+    ocStack* s = ocStackNew(lim);//all buffers fill to 3/5 blocks
     fillFromList(s, data, lim, 0); 
     return s;
 }
 
+//cap is not implemented. TODO
 void capLength(ocStack *s, int cap){
-    s->maxLength = cap; 
-    if(s->next!=NULL)
+    s->cap = cap; 
+    if(s->next!=NULL && cap>1) 
         capLength(s->next, (cap-2)/2);
 }
 
 obliv bool peek(frozen ocStack *s){
-	~obliv(cond){
-		if(cond) return s->buffer[head];
+	return s->buffer[head-1];
+}
+
+//Test for edge cases, null or not enough to shift.
+static void shiftLeft(frozen ocStack *s){
+	s->popCount=0;
+	//if next is null, do nothing.
+	if(s->next!=null){
+		if(s->head<2 && s->next->head>0){//perform shift
+			int level = s->level;
+			int nxtBlockSize = exp2(level+1);
+			int curBlockSize = exp2(level);
+			
+			for(int i=0; i<nxtBlockSize; i++){
+				s->buffer[(head)*curBlockSize+i] = s->next->buffer[
+						(s->next->head-1)*nxtBlockSize+i];
+			}
+			s->head+=2;
+			s->next->head--;
+		}
+		s->next->popCount++;
+		if(s->next->popCount>=2)
+			shiftLeft(s->next);
+	}
+}
+
+//assume there is space to shift into, and buffers have been allocated
+static void shiftRight(frozen ocStack *s){
+	s->pushCount=0;
+	//if next is null, do nothing.
+	if(s->next!=null){
+		if(s->head<2 && s->next->head<5){
+			int level = s->level;
+			int nxtBlockSize = exp2(level+1);
+			int curBlockSize = exp2(level);
+			
+			for(int i=0; i<nxtBlockSize; i++){
+				s->next->buffer[(s->next->head)*nxtBlockSize+i] = 
+						s->buffer[(head-1)*curBlockSize+i];
+			}
+			s->head-=2;
+			s->next->head++;
+		}
+		
+		s->next->pushCount++;
+		if(s->next->pushCount>=2)
+		shiftRight(s->next);
 	}
 }
 
 obliv bool pop(frozen ocStack *s) obliv{
     ~obliv(cond){
+		obliv bool val;
+		if(cond){
+			val = s->buffer[head-1];
+			s->head--;
+		}
 		
+		s->popCount++;
+		if (s->popCount>=2){
+			shiftLeft(s);
+		}
+		
+		if(cond)
+			return val;
     }
 }
 
 void modifyTop(frozen ocStack *s, obliv bool b) obliv{
-    s->buffer[head] = b;
+    ~obliv(cond){
+		if(cond) s->buffer[head-1] = b;
+	}
+}
+
+static void incMax(frozen ocStack *s){
+		if(s->maxSize<4)
+			s->maxSize++;
+		else{
+			if(s->next == NULL){
+				s->next = calloc(sizeof (ocStack));
+				s->next->buffer = calloc(bufSlots*(sizeof (obliv bool)));
+				s->next->level = s->level++;
+				if(s->cap>1)
+					s->next->cap = s->(cap-2)/2
+			}
+			s->maxSize-=2;
+			incMax(s->next);
+		}
 }
 
 void push(frozen ocStack *s, obliv bool b) obliv{
 	~obliv(cond){
-	
+		incMax(s); //also allocated extra space if required.
+		obliv if(cond){
+			s->buffer[head] = b;
+			head++;
+		}
+		
+		s->pushCount++;
+		if (s->pushCount>=2){
+			shifRight(s);
+		}
 	}
 }
 
@@ -71,3 +157,5 @@ void ocStackRelease(ocStack* s){
     free(s->buffer);
     free(s);
 }
+
+//if to obliv if? Check later.

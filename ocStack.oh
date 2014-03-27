@@ -2,10 +2,12 @@ typedef struct ocStack
 {
     int level;
     buffer *next;
-    obliv char head; //limited to 0-5
+    obliv char head; //0-4
     obliv bool *buffer;
-    int cap;
-    int maxSize; //max possible size.
+    int cap; //User set size limit
+    int maxSize; //max possible blocks
+	char pushCount; //num times cond push called
+	char popCount; //num times cond pop called
 }ocStack;
 
 ocStack* ocStackNew();

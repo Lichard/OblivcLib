@@ -1,7 +1,9 @@
+#pragma once
 typedef struct ocStack 
 {
     int level;
-    buffer *next;
+	int itemSize;//size in bits
+    struct ocStack *next;
     obliv char head; //0-4
     obliv bool *buffer;
     int cap; //User set size limit
@@ -10,12 +12,11 @@ typedef struct ocStack
 	char popCount; //num times cond pop called
 }ocStack;
 
-ocStack* ocStackNew();
-ocStack* ocStackNew(int n);
-ocStack* ocStackFromList(bool data[], int lim);
+ocStack* ocStackNew(int n, int itemSize);
+ocStack* ocStackFromList(bool data[], int lim, int itemSize);
 void capLength(frozen ocStack *s, int cap);
-obliv bool peek(frozen ocStack *s) obliv;
-obliv bool pop(frozen ocStack *s) obliv;
-void modifyTop(frozen ocStack *s, obliv bool b) obliv;
-void push(frozen ocStack *s, obliv bool b) obliv;
+void peek(obliv bool* dest, frozen ocStack *s) obliv;
+void pop(obliv bool* dest, frozen ocStack *s) obliv;
+void modifyTop(frozen ocStack *s, obliv bool* b) obliv;
+void push(frozen ocStack *s, obliv bool* b) obliv;
 void ocStackRelease(frozen ocStack* s);

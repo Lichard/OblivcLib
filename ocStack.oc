@@ -12,7 +12,7 @@ static void oBoolCopyReverse(obliv bool* dest, const obliv bool* src, size_t ite
 	int i,j;
 	for(i=0; i<itemCount; i++){
 		for(j=0; j<itemSize; j++){
-			dest[(itemCount-i)*itemSize+j] = src[i*itemSize+j];
+			dest[(itemCount-i-1)*itemSize+j] = src[i*itemSize+j];
 		}
 	}
 }
@@ -134,9 +134,9 @@ void pop(obliv bool* dest, frozen ocStack *s) obliv{
             }
             s->head--;
         }
-        s->popCount++;
-        if (s->popCount>=2)
-            shiftLeft(s);
+		s->popCount++;
+		if (s->popCount>=2)
+			shiftLeft(s);
     }
 }
 

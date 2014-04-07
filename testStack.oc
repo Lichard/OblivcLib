@@ -2,15 +2,58 @@
 #include"testStack.h"
 #include<stdio.h>
 #include"ocStack.oh"
+#include<math.h>
 
 void testStack(void* args)
 {
     protocolIO *io = args;
-    obliv bool b;
+    obliv bool b1[80];
+	obliv bool b2[80];
 	
-	ocStack* os = ocStackNew(15, 1);
-	fprintf(stderr, "Stack Created\n");
-	ocStackRelease(os);
-	fprintf(stderr, "Stack Released\n");
+	int i,j;
+	for (i=0; i<10; i++){
+		for(j=0; j<8; j++){
+			b1[i*8+j] = feedOblivBool((bool)(io->data[i] & (1<<j)), 1);
+			b2[i*8+j] = feedOblivBool((bool)(io->data[i] & (1<<j)), 2);
+		}
+	}
 	
+	int ct;
+	obliv int count = 0;
+	obliv bool match;
+
+	ocStack* os1 = ocStackFromList(b1, 10, 8);
+	ocStack* os2 = ocStackFromList(b2, 10, 8);
+	
+	obliv bool a1[8];
+	obliv bool a2[8];
+	for(i=0; i<10; i++){//per character
+		match = true;
+		pop(a1, os1);
+		pop(a2, os2);
+	
+		bool rbool;
+		char c = 0;
+		for(j=0; j<8; j++){//per bit
+			revealOblivBool(&rbool, a1[j], 1);
+			revealOblivBool(&rbool, a2[j], 2);
+			int k;
+			c+= (rbool<<j);
+			fprintf(stderr, "%d - %d\n", rbool, j);
+
+			obliv if(a1[i] != a2[i])
+				match = false;
+		}
+		fprintf(stderr, "%c - %d\n", c, c);
+		obliv if(!match)
+			count++;
+		revealOblivInt(&ct, count, 0);
+		fprintf(stderr, "Count: %d i: %d\n", ct, i);
+	}
+	
+	revealOblivInt(&ct, count, 0);
+	io->hammingDist = ct;
+	fprintf(stderr, "Distance is %d\n", ct);
+	ocStackRelease(os1);
+	ocStackRelease(os2);
 }

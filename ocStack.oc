@@ -22,11 +22,18 @@ static ocStack* ocStackCreate(int n, int level, int itemSize){
     if(n<=0)
         return NULL;
     int blockSize = 1<<level;
+	int blockNum;
+	if(n/blockSize == 1)
+		blockNum=1;
+	else if(n/blockSize % 2 == 0)//even
+		blockNum = 2;
+	else //odd 
+		blockNum = 3;
     ocStack* s = calloc(1, sizeof (ocStack));
     s->itemSize = itemSize;
     s->level = level;
     s->buffer = calloc(1, 5*itemSize*blockSize*(sizeof (obliv bool)));
-    s->next = ocStackCreate(n - 3*blockSize, level+1, itemSize); //to fill 3/5 spaces
+    s->next = ocStackCreate(n - blockNum*blockSize, level+1, itemSize);
     return s;
 }
 
@@ -39,15 +46,22 @@ static void fillFromList(ocStack* s, obliv bool data[], int lim, int level, int 
     if(lim<=0)
         return;
     s->level = level;
-    s->head = 3;
     int blockSize = 1<<level;
-    oBoolCopyReverse(s->buffer, data, 3*blockSize, itemSize);
-    s->maxSize = 3;
-    fillFromList(s->next, data+3*itemSize*blockSize, lim-3*blockSize, level+1, itemSize);
+	int blockNum;
+	if(lim/blockSize == 1)
+		blockNum=1;
+	else if(lim/blockSize % 2 == 0)//even
+		blockNum = 2;
+	else //odd 
+		blockNum = 3;
+	s->head = blockNum;
+    oBoolCopyReverse(s->buffer, data, blockNum*blockSize, itemSize);
+    s->maxSize = blockNum;
+    fillFromList(s->next, data+blockNum*itemSize*blockSize, lim-blockNum*blockSize, level+1, itemSize);
 }
 
 ocStack* ocStackFromList(obliv bool data[], int lim, int itemSize){
-    ocStack* s = ocStackNew(lim, itemSize);//all buffers fill to 3/5 blocks
+    ocStack* s = ocStackNew(lim, itemSize);
     fillFromList(s, data, lim, 0, itemSize); 
     return s;
 }
@@ -116,7 +130,7 @@ static void shiftRight(frozen ocStack *s){
 				s->next->head++;
 			}
 		}
-        oBoolCopy(s->buffer, s->buffer + 2*curBlockSize*s->itemSize, 3*s->itemSize);
+        oBoolCopy(s->buffer, s->buffer + 2*curBlockSize*s->itemSize, 3*curBlockSize*s->itemSize);
     }
     s->next->pushCount++;
     if(s->next->pushCount>=2)
@@ -124,16 +138,14 @@ static void shiftRight(frozen ocStack *s){
 }
 
 void pop(obliv bool* dest, frozen ocStack *s) obliv{
+	int i;
+	for(i=0; i < 5; i++){
+		obliv if(i==(s->head-1)){
+			oBoolCopy(dest, s->buffer+i*s->itemSize, s->itemSize);
+		}
+	}
+	s->head--;
     ~obliv(cond){
-        obliv if(cond){
-            int i;
-            for(i=0; i < 5; i++){
-                obliv if(i==(s->head-1)){
-                    oBoolCopy(dest, s->buffer+i*s->itemSize, s->itemSize);
-                }
-            }
-            s->head--;
-        }
 		s->popCount++;
 		if (s->popCount>=2)
 			shiftLeft(s);
@@ -141,15 +153,11 @@ void pop(obliv bool* dest, frozen ocStack *s) obliv{
 }
 
 void modifyTop(frozen ocStack *s, obliv bool* b) obliv{
-    ~obliv(cond){
-        obliv if(cond){
-            for(int i=0; i < 5; i++){
-                obliv if(i==(s->head-1)){
-                    oBoolCopy(s->buffer+i*s->itemSize, b, s->itemSize);
-                }
-            }
-        }
-    }
+	for(int i=0; i < 5; i++){
+		obliv if(i==(s->head-1)){
+			oBoolCopy(s->buffer+i*s->itemSize, b, s->itemSize);
+		}
+	}
 }
 
 static void incMax(frozen ocStack *s){

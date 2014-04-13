@@ -17,7 +17,8 @@ int main(int argc, char* argv[])
 	sscanf(argv[2], "%s[10]", io.data); 
     protocolUseStdio(&pd);
     setCurrentParty(&pd, argv[1][0]=='1'?1:2);
-    execYaoProtocol(&pd, testStack, &io);
+    execYaoProtocol(&pd, hamming, &io);
+	fprintf(stderr,"Gate Count: %u\n",yaoGateCount());
     cleanupProtocol(&pd);
     fprintf(stderr, "Hamming Distance: %d\n", io.hammingDist);
 }

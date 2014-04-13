@@ -4,4 +4,4 @@ typedef struct protocolIO
     char data[10];
 } protocolIO;
 
-void testStack(void* args);
+void hamming(void* args);

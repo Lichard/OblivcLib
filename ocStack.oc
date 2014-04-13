@@ -126,49 +126,52 @@ static void shiftRight(frozen ocStack *s){
 			obliv if(j==s->next->head){
 				oBoolCopy(s->next->buffer+j * nxtBlockSize * s->next->itemSize, 
 						s->buffer, nxtBlockSize*s->itemSize);
-				s->head-=2;
-				s->next->head++;
 			}
 		}
+        s->head-=2;
+        s->next->head++;
         oBoolCopy(s->buffer, s->buffer + 2*curBlockSize*s->itemSize, 3*curBlockSize*s->itemSize);
     }
     s->next->pushCount++;
-    if(s->next->pushCount>=2)
+    if(s->next->pushCount==2){
         shiftRight(s->next);
+    }
 }
 
 void pop(obliv bool* dest, frozen ocStack *s) obliv{
-	int i;
-	for(i=0; i < 5; i++){
-		obliv if(i==(s->head-1)){
-			oBoolCopy(dest, s->buffer+i*s->itemSize, s->itemSize);
-		}
-	}
-	s->head--;
+    int i;
+    for(i=0; i < 5; i++){
+        obliv if(i==(s->head-1)){
+            oBoolCopy(dest, s->buffer+i*s->itemSize, s->itemSize);
+        }
+    }
+    s->head--;
     ~obliv(cond){
-		s->popCount++;
-		if (s->popCount>=2)
-			shiftLeft(s);
+        s->popCount++;
+        if (s->popCount>=2)
+            shiftLeft(s);
     }
 }
 
 void modifyTop(frozen ocStack *s, obliv bool* b) obliv{
-	for(int i=0; i < 5; i++){
-		obliv if(i==(s->head-1)){
-			oBoolCopy(s->buffer+i*s->itemSize, b, s->itemSize);
-		}
-	}
+    for(int i=0; i < 5; i++){
+        obliv if(i==(s->head-1)){
+            oBoolCopy(s->buffer+i*s->itemSize, b, s->itemSize);
+        }
+    }
 }
 
 static void incMax(frozen ocStack *s){
-    int blockSize = 5*(1<<s->level);
+    int blockSize = 1<<(s->level+1);
+    s->maxSize++;
     if(s->maxSize<4)
-        s->maxSize++;
+        return;
     else{
         if(s->next == NULL){
             s->next = calloc(1, sizeof (ocStack));
-            s->next->buffer = calloc(1, blockSize*(sizeof (obliv bool)));
-            s->next->level = s->level++;
+            s->next->buffer = calloc(1, 5*s->itemSize*blockSize*(sizeof (obliv bool)));
+            s->next->level = s->level+1;
+            s->next->itemSize = s->itemSize;
             if(s->cap>1)
                 s->next->cap = (s->cap-2)/2;
         }
@@ -194,6 +197,7 @@ void push(frozen ocStack *s, obliv bool* b) obliv{
             shiftRight(s);
     }
 }
+
 void ocStackRelease(ocStack* s){
     if(s->next != NULL)
         ocStackRelease(s->next);

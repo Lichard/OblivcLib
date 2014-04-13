@@ -3,11 +3,12 @@
 #include<stdio.h>
 #include"ocStack.oh"
 
-void testStack(void* args)
+void hamming(void* args)
 {
     protocolIO *io = args;
     obliv bool b1[80];
 	obliv bool b2[80];
+    bool rb;
 	
 	int i,j;
 	for (i=0; i<10; i++){
@@ -18,14 +19,16 @@ void testStack(void* args)
 	}
 	
 	ocStack* os1 = ocStackFromList(b1, 10, 8);
-	ocStack* os2 = ocStackFromList(b2, 10, 8);
+    ocStack* os2 = ocStackNew(3, 8);
+	for(i=9; i>=0; i--){
+		push(os2, &b2[i*8]);
+	}
 	
 	int ct;
 	obliv int count=0;
 	obliv bool a1[8];
 	obliv bool a2[8];
 	obliv bool match;
-
 	for(i=0; i<10; i++){//per character
 		pop(a1, os1);
 		pop(a2, os2);
@@ -34,10 +37,10 @@ void testStack(void* args)
 			obliv if(a1[j]!=a2[j])
 				match = false;
 		}
+
 		obliv if(!match)
 			count++;
 	}
-	
 	revealOblivInt(&ct, count, 0);
 	io->hammingDist = ct;
 	ocStackRelease(os1);
